@@ -15,19 +15,13 @@ maze2 = [['|', '-', '-', '-', '-', '-', '|'],
          ['|', ' ', ' ', ' ', ' ', ' ', '|'],
          ['|', 'S', ' ', '+', ' ', ' ', '|'],
          ['|', '-', '-', '-', '-', '-', '|']]
-maze2 = [['|', '-', '-', '-', '-', '-', '|'],
-         ['|', 'S', '+', ' ', ' ', ' ', '|'],
-         ['|', ' ', '+', ' ', '+', ' ', '|'],
-         ['|', ' ', '+', 'X', '+', ' ', '|'],
-         ['|', ' ', '+', '+', '+', ' ', '|'],
-         ['|', ' ', ' ', ' ', ' ', ' ', '|'],
-         ['|', '-', '-', '-', '-', '-', '|']]
 
-gui_maze = gui.main_menu()
+
+maze = gui.main_menu()
 
 
 def main(gui_maze):
-    # gui_maze = maze2
+
     def find_start(maze):
         if maze is not None:
             for w in range(6):
@@ -50,6 +44,7 @@ def main(gui_maze):
     print("-" * 35)
 
     def is_wall(cell_val, maze, node_col, node_row):
+        # ----------------------- U move --------------------------
         if cell_val == "U":
             adj_cell = maze[node_col - 1][node_row]
             if adj_cell == "-" or adj_cell == "|" or adj_cell == "+":
@@ -57,6 +52,7 @@ def main(gui_maze):
             else:
                 return False
 
+        # ----------------------- R move --------------------------
         if cell_val == "R":
             adj_cell = maze[node_col][node_row + 1]
             if adj_cell == "-" or adj_cell == "|" or adj_cell == "+":
@@ -64,6 +60,7 @@ def main(gui_maze):
             else:
                 return False
 
+        # ----------------------- D move --------------------------
         if cell_val == "D":
             adj_cell = maze[node_col + 1][node_row]
             if adj_cell == "-" or adj_cell == "|" or adj_cell == "+":
@@ -71,6 +68,7 @@ def main(gui_maze):
             else:
                 return False
 
+        # ----------------------- L move --------------------------
         if cell_val == "L":
             adj_cell = maze[node_col][node_row - 1]
             if adj_cell == "-" or adj_cell == "|" or adj_cell == "+":
@@ -90,7 +88,6 @@ def main(gui_maze):
                 node_col += 1
             if n == "L":
                 node_row -= 1
-
         return node_col, node_row
 
     def visualize_path(maze, path):
@@ -104,7 +101,7 @@ def main(gui_maze):
                     maze[k][j] = "#"
 
     def check_paths(path, maze, node_col, node_row):
-        # Start in Col and Row
+        # Start in node_Col and node_Row
         path += ""
         visited_nodes = []
         path = [char for char in path]
@@ -112,9 +109,10 @@ def main(gui_maze):
 
         for j in range(len(path)):
 
-            nd = path[j]
+            node = path[j]
 
-            if nd == "U":
+            # -------------- U move -------------------
+            if node == "U":
                 val = maze[node_col - 1][node_row]
                 node_col -= 1
                 visited_nodes.append([node_col, node_row])
@@ -124,7 +122,8 @@ def main(gui_maze):
                     else:
                         return True
 
-            if nd == "R":
+            # -------------- R move -------------------
+            if node == "R":
                 val = maze[node_col][node_row + 1]
                 node_row += 1
                 visited_nodes.append([node_col, node_row])
@@ -133,7 +132,9 @@ def main(gui_maze):
                         return True, visited_nodes
                     else:
                         return True
-            if nd == "D":
+
+            # -------------- D move -------------------
+            if node == "D":
                 val = maze[node_col + 1][node_row]
                 node_col += 1
                 visited_nodes.append([node_col, node_row])
@@ -142,7 +143,9 @@ def main(gui_maze):
                         return True, visited_nodes
                     else:
                         return True
-            if nd == "L":
+
+            # -------------- U move -------------------
+            if node == "L":
                 val = maze[node_col][node_row - 1]
                 node_row -= 1
                 visited_nodes.append([node_col, node_row])
@@ -153,22 +156,22 @@ def main(gui_maze):
                         return True
 
     def all_paths(maze, node_col, node_row):
-        """the maze param is only needed to pass to the valid move func"""
         queue = [""]
-        found = False
-        while not found:
-            # deque
-            end = time.perf_counter()
-            if end - start > 1:
+        while True:
+
+            end_time = time.perf_counter()
+            if end_time - start > 1:
                 return None
 
+            # queue.get
             e = queue[0]
-            if len(e) > 0:
 
+            if len(e) > 0:
                 solution = check_paths(e, maze, node_col, node_row)
                 if solution:
                     return solution
 
+            # deque
             queue.pop(0)
 
             # ------------------- U move ------------------------
@@ -248,4 +251,4 @@ def main(gui_maze):
 
 
 if __name__ == "__main__":
-    main(gui_maze)
+    main(maze)
