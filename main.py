@@ -802,7 +802,6 @@ def main_menu():
                 return main_gui()
             timer = 0
 
-
         if keys[pygame.K_SPACE]:
             # TODO Make a loading bar
             return main_gui()
