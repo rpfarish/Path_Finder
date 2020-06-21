@@ -1,7 +1,15 @@
 import pygame
-import random
 import os
 import time
+
+pygame.font.init()
+icon = pygame.image.load(os.path.join("assets", "pathfinder.png"))
+pygame.display.set_icon(icon)
+
+# Window
+Width, Height = 700, 650
+Win = pygame.display.set_mode((Width, Height))
+pygame.display.set_caption("Path Finder v1.0")
 
 maze1 = [['|', '-', '-', '-', '-', '-', '|'],
          ['|', ' ', ' ', ' ', ' ', ' ', '|'],
@@ -19,82 +27,57 @@ maze2 = [['|', '-', '-', '-', '-', '-', '|'],
          ['|', '-', '-', '-', '-', '-', '|']]
 
 
-def find_path(gui_maze):
-    def make_maze(wall_li, start, end):
-        for i in range(len(wall_li)):
-            if wall_li[i] is True:
-                wall_li[i] = "+"
-            elif wall_li[i] is False:
-                wall_li[i] = " "
-        wall_li[start - 1] = "S"
-        wall_li[end - 1] = "X"
+def find_path(gui_maze, width=7, height=7):
+    start = time.perf_counter()
 
-        new_maze = [['|', '-', '-', '-', '-', '-', '|'],
-                    ['|', wall_li[0], wall_li[1], wall_li[2], wall_li[3], wall_li[4], '|'],
-                    ['|', wall_li[5], wall_li[6], wall_li[7], wall_li[8], wall_li[9], '|'],
-                    ['|', wall_li[10], wall_li[11], wall_li[12], wall_li[13], wall_li[14], '|'],
-                    ['|', wall_li[15], wall_li[16], wall_li[17], wall_li[18], wall_li[19], '|'],
-                    ['|', wall_li[20], wall_li[21], wall_li[22], wall_li[23], wall_li[24], '|'],
-                    ['|', '-', '-', '-', '-', '-', '|']]
-
-        # for node in maze1:
-        #     print(node)
-        return new_maze
-
-
-
-    # print(text_maze.readline())
+    # TODO rename with BFS
 
     def find_start(maze):
+        # print(maze)
         if maze is not None:
-            for w in range(6):
-                for u in range(6):
+            for w in range(1, height + 1):
+                for u in range(1, width):
                     s = maze[w][u]
                     if s == 'S':
                         return w, u
 
     col, row = find_start(gui_maze)
 
-    start = time.perf_counter()
-    # Start Node
-    # col = 5
-    # row = 1
+    # col, row = 5, 1
     gui_maze[col][row] = "S"
 
     # Print Maze
-    for i in gui_maze:
-        print(i)
-    print("-" * 35)
+    # for i in gui_maze:
+    #     print(i)
+    # print("-" * 35)
 
     def is_wall(cell_val, maze, node_col, node_row):
-        # ----------------------- U move --------------------------
+        wall = ["-", "|", "+"]
+        # -------------- U move --------------
         if cell_val == "U":
             adj_cell = maze[node_col - 1][node_row]
-            if adj_cell == "-" or adj_cell == "|" or adj_cell == "+":
+            if adj_cell in wall:
                 return True
             else:
                 return False
-
-        # ----------------------- R move --------------------------
+        # -------------- R move --------------
         if cell_val == "R":
             adj_cell = maze[node_col][node_row + 1]
-            if adj_cell == "-" or adj_cell == "|" or adj_cell == "+":
+            if adj_cell in wall:
                 return True
             else:
                 return False
-
-        # ----------------------- D move --------------------------
+        # -------------- D move --------------
         if cell_val == "D":
             adj_cell = maze[node_col + 1][node_row]
-            if adj_cell == "-" or adj_cell == "|" or adj_cell == "+":
+            if adj_cell in wall:
                 return True
             else:
                 return False
-
-        # ----------------------- L move --------------------------
+        # -------------- L move --------------
         if cell_val == "L":
             adj_cell = maze[node_col][node_row - 1]
-            if adj_cell == "-" or adj_cell == "|" or adj_cell == "+":
+            if adj_cell in wall:
                 return True
             else:
                 return False
@@ -114,14 +97,11 @@ def find_path(gui_maze):
         return node_col, node_row
 
     def visualize_path(maze, path):
-        print(len(path), path)
         for p in path:
-            if p is True:
-                pass
-            else:
+            if p is not True:
                 for s in p:
-                    k = int(s[0])
-                    j = int(s[1])
+                    k = s[0]
+                    j = s[1]
                     maze[k][j] = "#"
         return maze
 
@@ -130,12 +110,8 @@ def find_path(gui_maze):
         path += ""
         visited_nodes = []
         path = [char for char in path]
-        # this is a list of what the path was to the end node
-
         for j in range(len(path)):
-
             node = path[j]
-
             # -------------- U move -------------------
             if node == "U":
                 val = maze[node_col - 1][node_row]
@@ -146,7 +122,6 @@ def find_path(gui_maze):
                         return True, visited_nodes
                     else:
                         return True
-
             # -------------- R move -------------------
             if node == "R":
                 val = maze[node_col][node_row + 1]
@@ -157,7 +132,6 @@ def find_path(gui_maze):
                         return True, visited_nodes
                     else:
                         return True
-
             # -------------- D move -------------------
             if node == "D":
                 val = maze[node_col + 1][node_row]
@@ -168,7 +142,6 @@ def find_path(gui_maze):
                         return True, visited_nodes
                     else:
                         return True
-
             # -------------- U move -------------------
             if node == "L":
                 val = maze[node_col][node_row - 1]
@@ -183,19 +156,15 @@ def find_path(gui_maze):
     def all_paths(maze, node_col, node_row):
         queue = [""]
         while True:
-
             end_time = time.perf_counter()
-            if end_time - start > 1:
+            if end_time - start > 100:
                 return None
-
             # queue.get
             e = queue[0]
-
             if len(e) > 0:
                 solution = check_paths(e, maze, node_col, node_row)
                 if solution:
                     return solution
-
             # deque
             queue.pop(0)
 
@@ -213,7 +182,6 @@ def find_path(gui_maze):
                 solution = check_paths(e, maze, node_col, node_row)
                 if solution:
                     return solution
-
             # ------------------ R move -------------------------
             cur_col, cur_row = get_node_pos(e, node_col, node_row)
             wall = is_wall("R", maze, cur_col, cur_row)
@@ -228,7 +196,6 @@ def find_path(gui_maze):
                 solution = check_paths(e, maze, node_col, node_row)
                 if solution:
                     return solution
-
             # ----------------- D move --------------------------
             cur_col, cur_row = get_node_pos(e, node_col, node_row)
             wall = is_wall("D", maze, cur_col, cur_row)
@@ -243,7 +210,6 @@ def find_path(gui_maze):
                 solution = check_paths(e, maze, node_col, node_row)
                 if solution:
                     return solution
-
             # ---------------- L move ---------------------------
             cur_col, cur_row = get_node_pos(e, node_col, node_row)
             wall = is_wall("L", maze, cur_col, cur_row)
@@ -263,51 +229,52 @@ def find_path(gui_maze):
     viz_maze = ""
     path_solution = all_paths(gui_maze, col, row)
     try:
+        # print(path_solution)
         a = path_solution[1][-1][0]
         b = path_solution[1][-1][1]
-
+        # print(path_solution)
         viz_maze = visualize_path(gui_maze, path_solution)
         gui_maze[a][b] = "X"
         for i in gui_maze:
-            print(i)
+            # print(i)pass
+            pass
     except TypeError:
         has_solution = False
-        print("No solution")
+        print("No solution, none")
 
     end = time.perf_counter()
     return end - start, viz_maze, has_solution
 
 
 # --------------------------------------------------------------------gui-----------------------------------------------------------------
-
-
-pygame.font.init()
-icon = pygame.image.load(os.path.join("assets", "pathfinder.png"))
-pygame.display.set_icon(icon)
-
-# Window
-Width, Height = 700, 650
-Win = pygame.display.set_mode((Width, Height))
-pygame.display.set_caption("Path Finder v1.0")
-
-
-def make_maze(wall_li, start, end):
+def make_maze(wall_li, start, end, grid_width=7, grid_height=7):
     for i in range(len(wall_li)):
         if wall_li[i] is True:
             wall_li[i] = "+"
         elif wall_li[i] is False:
             wall_li[i] = " "
-    wall_li[start - 1] = "S"
-    wall_li[end - 1] = "X"
+    wall_li[start] = "S"
+    wall_li[end] = "X"
 
-    maze1 = [['|', '-', '-', '-', '-', '-', '|'],
-             ['|', wall_li[0], wall_li[1], wall_li[2], wall_li[3], wall_li[4], '|'],
-             ['|', wall_li[5], wall_li[6], wall_li[7], wall_li[8], wall_li[9], '|'],
-             ['|', wall_li[10], wall_li[11], wall_li[12], wall_li[13], wall_li[14], '|'],
-             ['|', wall_li[15], wall_li[16], wall_li[17], wall_li[18], wall_li[19], '|'],
-             ['|', wall_li[20], wall_li[21], wall_li[22], wall_li[23], wall_li[24], '|'],
-             ['|', '-', '-', '-', '-', '-', '|']]
+    for sy in range(grid_width):
+        pass
 
+    end_wall = ['|']
+    for sy in range(grid_width):
+        end_wall.append('-')
+    end_wall.append('|')
+    # outer for loop can hold the cols and inner holds rows
+    maze1 = [end_wall]
+    num = 0
+    for a in range(grid_height):
+        add_var = ['|']
+        for v in range(num, grid_width + num):
+            add_var.append(wall_li[v])
+        add_var += '|'
+        maze1.append(add_var)
+        num += grid_width
+
+    maze1.append(end_wall)
     # for node in maze1:
     #     print(node)
     return maze1
@@ -315,22 +282,26 @@ def make_maze(wall_li, start, end):
 
 def gui_visualize_maze(maze5, grid):
     maze = make_maze_path_bool(maze5)
-    print(maze)
-    for pudding in range(len(maze)):
-        for jello in range(1, 26):
-            myobj = grid[jello]
-            if maze[pudding] == "#":
+    # print(maze)
+    for p in range(len(maze)):
+        for j in range(1, 50):
+            myobj = grid[j]
+            if maze[p] == "#":
                 myobj.change_color((255, 255, 0))
 
 
-def make_maze_path_bool(maze):
+#                 TODO make obj classes  change colors with words and rgb
+
+def make_maze_path_bool(maze, grid_width=7, grid_height=7):
     the_li = []
-    for i in range(1, 6):
-        for j in range(1, 6):
+    # print(maze)
+    for i in range(1, grid_height + 1):
+        for j in range(1, grid_width + 1):
             if maze[i][j] == "#":
                 the_li.append(True)
             else:
                 the_li.append(False)
+    # print(the_li)
     return the_li
 
 
@@ -343,10 +314,10 @@ class Rectangle:
         self.width = width
         self.height = height
         self.toggle = False
-        self.is_start = False
         self.is_wall = False
         self.is_start = False
         self.is_end = False
+        self.is_path = False
 
     def draw(self):
         pygame.draw.rect(self.Win, self.color, (self.x, self.y, self.width, self.height))
@@ -367,11 +338,16 @@ class Rectangle:
         self.color = color
 
     def hover(self, mouse):
-        if self.x < mouse[0] < self.x + self.width and \
-                self.y < mouse[1] < self.y + self.height:
+        if self.x < mouse[0] < self.x + self.width and self.y < mouse[1] < self.y + self.height:
             return True
         else:
             return False
+
+    def clear(self):
+        self.is_wall = False
+        self.is_start = False
+        self.is_end = False
+        self.change_color((255, 255, 255))
 
 
 class CellBorder(Rectangle):
@@ -425,8 +401,8 @@ class Button:
         self.r_val = self.text_color[0]
         self.g_val = self.text_color[1]
         self.b_val = self.text_color[2]
-
         self.text_label = self.font_label.render(str(self.text), 1, (self.r_val, self.g_val, self.b_val))
+        self.clickable = True
 
     def draw(self):
         pygame.draw.rect(self.Win, self.color, (self.x, self.y, self.width, self.height))
@@ -451,96 +427,57 @@ class Button:
     def change_text(self, new_text):
         self.text_label = self.font_label.render(str(new_text), 1, (self.r_val, self.g_val, self.b_val))
 
+    def change_text_size(self, size):
+        self.font_label = pygame.font.SysFont(self.font, int(size))
+
+    def can_click(self, mouse, click):
+
+        if not self.hover(mouse) and click[0]:
+            self.clickable = False
+            return False
+        if not self.hover(mouse) and not click[0]:
+            self.clickable = True
+            return True
+
 
 def main_gui():
     run = True
-
+    # todo MAKE A COLOR DICT
     BLUE = (0, 0, 255)
     white = (255, 255, 255)
     grey = (175, 175, 175)
-    FPS = 60
+    FPS = 55
     clock = pygame.time.Clock()
-    main_font = pygame.font.SysFont("comicsans", 50)
+    main_font = pygame.font.SysFont("arial", 50)
     red = (255, 0, 0)
     white = (255, 255, 255)
     white2 = (235, 235, 235)
     color1 = white
+    # 10 apart
     button1 = Button(Win, grey, 250, 5, 200, 25, "Find Path", text_color=(0, 0, 0))
-    button2 = Button(Win, grey, 50+5*2+400, 5, 100, 25, "Clear", text_color=(0, 0, 0))
+    button2 = Button(Win, grey, 50 + 5 * 2 + 400, 5, 100, 25, "Clear", text_color=(0, 0, 0))
+    button3 = Button(Win, grey, 140, 5, 100, 25, "Menu", text_color=(0, 0, 0))
     border = CellBorder(Win, red, 100, 50, 100, 100)
 
-    # Make 1st Row
-    highlight_box1 = Rectangle(Win, color1, 1 * 100 - 2 * -1, 50 + 2, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box2 = Rectangle(Win, color1, 2 * 100 - 2 * 0, 50 + 2, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box3 = Rectangle(Win, color1, 3 * 100 - 2 * 1, 50 + 2, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box4 = Rectangle(Win, color1, 4 * 100 - 2 * 2, 50 + 2, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box5 = Rectangle(Win, color1, 5 * 100 - 2 * 3, 50 + 2, 100 - 2 * 2, 100 - 2 * 2)
-
-    # Make 2nd Row
-    highlight_box6 = Rectangle(Win, color1, 1 * 100 - 2 * -1, 100 + 50, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box7 = Rectangle(Win, color1, 2 * 100 - 2 * 0, 100 + 50, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box8 = Rectangle(Win, color1, 3 * 100 - 2 * 1, 100 + 50, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box9 = Rectangle(Win, color1, 4 * 100 - 2 * 2, 100 + 50, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box10 = Rectangle(Win, color1, 5 * 100 - 2 * 3, 100 + 50, 100 - 2 * 2, 100 - 2 * 2)
-
-    # Make 3nd Row
-    highlight_box11 = Rectangle(Win, color1, 1 * 100 - 2 * -1, 2 * 100 + 50 - 2, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box12 = Rectangle(Win, color1, 2 * 100 - 2 * 0, 2 * 100 + 50 - 2, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box13 = Rectangle(Win, color1, 3 * 100 - 2 * 1, 2 * 100 + 50 - 2, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box14 = Rectangle(Win, color1, 4 * 100 - 2 * 2, 2 * 100 + 50 - 2, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box15 = Rectangle(Win, color1, 5 * 100 - 2 * 3, 2 * 100 + 50 - 2, 100 - 2 * 2, 100 - 2 * 2)
-
-    # Make 4nd Row
-    highlight_box16 = Rectangle(Win, color1, 1 * 100 - 2 * -1, 3 * 100 + 50 - 2 * 2, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box17 = Rectangle(Win, color1, 2 * 100 - 2 * 0, 3 * 100 + 50 - 2 * 2, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box18 = Rectangle(Win, color1, 3 * 100 - 2 * 1, 3 * 100 + 50 - 2 * 2, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box19 = Rectangle(Win, color1, 4 * 100 - 2 * 2, 3 * 100 + 50 - 2 * 2, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box20 = Rectangle(Win, color1, 5 * 100 - 2 * 3, 3 * 100 + 50 - 2 * 2, 100 - 2 * 2, 100 - 2 * 2)
-
-    # Make 5nd Row
-    highlight_box21 = Rectangle(Win, color1, 1 * 100 - 2 * -1, 4 * 100 + 50 - 2 * 3, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box22 = Rectangle(Win, color1, 2 * 100 - 2 * 0, 4 * 100 + 50 - 2 * 3, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box23 = Rectangle(Win, color1, 3 * 100 - 2 * 1, 4 * 100 + 50 - 2 * 3, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box24 = Rectangle(Win, color1, 4 * 100 - 2 * 2, 4 * 100 + 50 - 2 * 3, 100 - 2 * 2, 100 - 2 * 2)
-    highlight_box25 = Rectangle(Win, color1, 5 * 100 - 2 * 3, 4 * 100 + 50 - 2 * 3, 100 - 2 * 2, 100 - 2 * 2)
-
-    the_grid = {
-        1: highlight_box1,
-        2: highlight_box2,
-        3: highlight_box3,
-        4: highlight_box4,
-        5: highlight_box5,
-        6: highlight_box6,
-        7: highlight_box7,
-        8: highlight_box8,
-        9: highlight_box9,
-        10: highlight_box10,
-        11: highlight_box11,
-        12: highlight_box12,
-        13: highlight_box13,
-        14: highlight_box14,
-        15: highlight_box15,
-        16: highlight_box16,
-        17: highlight_box17,
-        18: highlight_box18,
-        19: highlight_box19,
-        20: highlight_box20,
-        21: highlight_box21,
-        22: highlight_box22,
-        23: highlight_box23,
-        24: highlight_box24,
-        25: highlight_box25,
-    }
+    the_grid = []
+    for y in range(7):
+        for x in range(7):
+            the_grid.append(Rectangle(Win, color1, ((x + 1) * 150 - 2 * (x - 10)) // 2,
+                                      ((y + 1) * 100 - 2 * (y - 10) + 50 * y) // 2, (140 - 2 * 2) // 2,
+                                      (140 - 2 * 2) // 2))
+            # highlight_box25 = Rectangle(Win, color1, 5 * 100 - 2 * 3, 4 * 100 + 50 - 2 * 3, 100 - 2 * 2, 100 - 2 * 2)
 
     lost = False
     timer = 0
     button1_can_click = True
     button2_can_click = True
     delay = 12
-    cursor_x = 1
+    cursor_x = 0
     time_took = 0
     main_label = main_font.render(f"{time_took} Seconds", 1, (119, 209, 225))
-
+    # TODO add depth label
+    # todo add error on screen: no solution
+    # todo add can click to the button class
     current_start = []
     current_end = []
     timer_click = 0
@@ -554,6 +491,7 @@ def main_gui():
         # Win.fill((21, 104, 207))
         button1.draw()
         button2.draw()
+        button3.draw()
         # Draw 5x5 grid; might make it a 5X9 grid idk
         # Rect params: x, y, width, height
         v_x = 100
@@ -567,73 +505,53 @@ def main_gui():
 
         # should = 100; (100*i+1) - (v_x-v_width)
         # Draw vertical lines
-        for i in range(6):
-            pygame.draw.rect(Win, grey, (v_x + v_line_dist * i, v_y, v_width, v_height - 8))
-            x_grid_width = ((v_x + v_line_dist * i) - v_x)
+        # for i in range(6):
+        #     pygame.draw.rect(Win, grey, (v_x + v_line_dist * i, v_y, v_width, v_height - 8))
+        #     x_grid_width = ((v_x + v_line_dist * i) - v_x)
 
-        h_height = v_width
-        h_width = x_grid_width
+        # h_height = v_width
+        # h_width = x_grid_width
         # Draw horizontal lines
-        for i in range(6):
-            pygame.draw.rect(Win, grey, (v_x, v_y + v_line_dist * i, h_width, h_height))
+        # for i in range(6):
+        #     pygame.draw.rect(Win, grey, (v_x, v_y + v_line_dist * i, h_width, h_height))
 
         # Need to put each square location into a class
-        highlight_box1.draw()
-        highlight_box2.draw()
-        highlight_box3.draw()
-        highlight_box4.draw()
-        highlight_box5.draw()
-        highlight_box6.draw()
-        highlight_box7.draw()
-        highlight_box8.draw()
-        highlight_box9.draw()
-        highlight_box10.draw()
-        highlight_box11.draw()
-        highlight_box12.draw()
-        highlight_box13.draw()
-        highlight_box14.draw()
-        highlight_box15.draw()
-        highlight_box16.draw()
-        highlight_box17.draw()
-        highlight_box18.draw()
-        highlight_box19.draw()
-        highlight_box20.draw()
-        highlight_box21.draw()
-        highlight_box22.draw()
-        highlight_box23.draw()
-        highlight_box24.draw()
-        highlight_box25.draw()
-
-        # border.draw()
+        for box in the_grid:
+            box.draw()
 
         if lost:
             quit()
 
-        Win.blit(main_label, (0, 0))
+        Win.blit(main_label, (0, Height - main_label.get_height()))
         button1.blit_text()
         button2.blit_text()
+        button3.blit_text()
         pygame.display.update()
 
     while run:
+        # todo add hover state to grid cells?
         clock.tick(FPS)
         redraw_window()
         main_label = main_font.render(f"{time_took} Seconds", 1, (119, 209, 225))
         keys = pygame.key.get_pressed()
-        keys_mod = pygame.key.get_mods()
         cell = the_grid[cursor_x]
+        # todo move the grid into a list
+        #  then auto make objs for that class
         mouse = pygame.mouse.get_pos()
         click = pygame.mouse.get_pressed()
         # print(click)
         # print(mouse)
 
-        for jello in range(1, 26):
+        for jello in range(len(the_grid)):
             myobj = the_grid[jello]
             if myobj.hover(mouse):
                 cursor_x = jello
                 pass
 
+        # todo make a mouse class?
+
         if timer_click >= delay:
-            for jello in range(1, 26):
+            for jello in range(len(the_grid)):
                 myobj = the_grid[jello]
                 if myobj.color == (255, 0, 0):
                     myobj.is_start = True
@@ -662,28 +580,30 @@ def main_gui():
         if not button1.hover(mouse):
             button1.change_color((175, 175, 175))
         # 250, 5, 200, 25
+        # if
         if button1.hover(mouse) and button1_can_click:
             if timer >= delay:
+
                 button1.change_color((140, 140, 140))
                 if button1.hover(mouse) and click[0] and button1_can_click:
+                    time_took = 0
                     button1.change_text("Find Path")
                     button1.change_color((110, 110, 110))
                     maze = []
                     if len(current_start) == 1 and len(current_end) == 1:
                         for i in the_grid:
-                            maze.append(the_grid[i].is_wall)
-                            if the_grid[i].color == (255, 255, 0):
-                                the_grid[i].change_color((255, 255, 255))
+                            maze.append(i.is_wall)
+                            if i.color == (255, 255, 0):
+                                i.change_color((255, 255, 255))
                         new_maze = make_maze(maze, current_start[0], current_end[0])
                         time_took, got_maze, has_sol = find_path(new_maze)
 
                         time_took = time_took.__round__(3)
                         bool_maze = make_maze_path_bool(new_maze)
                         for wj in range(len(bool_maze)):
-                            mi_obj = the_grid[wj+1]
+                            mi_obj = the_grid[wj]
                             if bool_maze[wj]:
-
-                                mi_obj.change_color((255,255,0))
+                                mi_obj.change_color((255, 255, 0))
                     else:
                         button1.change_text("Error")
 
@@ -712,8 +632,7 @@ def main_gui():
                     cell.change_color((0, 255, 0))
                     current_start.append(cursor_x)
                 timer = 0
-        if keys[pygame.K_BACKSPACE]:
-            cell.color = (255, 255, 255)
+
         if keys[pygame.K_e]:
             if timer >= delay:
                 cell.is_wall = False
@@ -746,31 +665,6 @@ def main_gui():
         if keys[pygame.K_ESCAPE]:
             quit()
 
-        if keys[pygame.K_RIGHT]:
-            if timer >= delay:
-                if 0 < cursor_x < 25 and cursor_x % 5 != 0:
-                    cursor_x += 1
-                    border.right()
-                timer = 0
-        if keys[pygame.K_LEFT]:
-            if timer >= delay:
-                if 0 < cursor_x <= 25 and cursor_x != 1 and cursor_x != 6 and cursor_x != 11 and cursor_x != 16 and cursor_x != 21:
-                    cursor_x -= 1
-                    border.left()
-                timer = 0
-        if keys[pygame.K_UP]:
-            if timer >= delay:
-                if 6 <= cursor_x <= 25:
-                    cursor_x -= 5
-                    border.up()
-                timer = 0
-        if keys[pygame.K_DOWN]:
-            if timer >= delay:
-                if 0 < cursor_x <= 20:
-                    cursor_x += 5
-                    border.down()
-                timer = 0
-
         if not button2.hover(mouse) and click[0]:
             button2_can_click = False
         if not button2.hover(mouse) and not click[0]:
@@ -787,22 +681,37 @@ def main_gui():
                     button2.change_color((110, 110, 110))
                     current_start.clear()
                     current_end.clear()
-                    for jello in range(1, 26):
+                    time_took = 0
+                    for jello in range(len(the_grid)):
                         myobj = the_grid[jello]
                         myobj.change_color((255, 255, 255))
                         myobj.is_wall = False
                         myobj.is_start = False
                         myobj.is_end = False
-
+        # TODO add clear to highlight class
         if keys[pygame.K_c]:
             current_start.clear()
             current_end.clear()
+            time_took = 0
             for jello in range(1, 26):
                 myobj = the_grid[jello]
                 myobj.change_color((255, 255, 255))
                 myobj.is_wall = False
                 myobj.is_start = False
                 myobj.is_end = False
+
+        if button3.hover(mouse):
+            button3.color = (140, 140, 140)
+        else:
+            button3.color = (175, 175, 175)
+        button3.can_click(mouse, click)
+        if button3.clickable:
+            if timer >= delay:
+
+                if click[0]:
+                    button3.color = (110, 110, 110)
+
+                    main_menu()
 
         # print("\n" * 3)
 
@@ -820,27 +729,38 @@ def main_menu():
     # info_color = (119, 209, 225)
     info_label = info_font.render("Press i for info or Space to continue.", 1, info_color)
     info_text_label = info_font.render("Use the mouse to hover over the cell that you want to change.", 1, info_color)
-    info_text_label2 = info_font.render("Left click puts down walls, Right click clears the cell, and while hovering over a cell", 1, info_color)
-    info_text_label3 = info_font.render("press the S and E keys to put down the Start and End nodes respectively.", 1, info_color)
+    info_text_label2 = info_font.render(
+        "Left click puts down walls, Right click clears the cell, and while hovering over a cell", 1, info_color)
+    info_text_label3 = info_font.render("press the S and E keys to put down the Start and End nodes respectively.", 1,
+                                        info_color)
     info_text_label4 = info_font.render("The C key clears the screen.", 1, info_color)
+
+    bfs_b = Button(Win, (175, 175, 175), Width // 2 - 50 - 75, Height - 200, 100, 25, "BFS", font_size=20)
+    dfs_b = Button(Win, (175, 175, 175), Width // 2 - 50 + 75, Height - 200, 100, 25, "DFS", font_size=20)
 
     run = True
     info = False
+    timer = 0
+    delay = 12
 
     def redraw_window():
         Win.fill((0, 0, 0))
+        bfs_b.draw()
+        dfs_b.draw()
+        bfs_b.blit_text()
+        dfs_b.blit_text()
         Win.blit(main_label, (Width // 2 - main_label.get_width() // 2, Height // 2 - main_label.get_height() // 2))
         Win.blit(info_label,
                  (Width // 2 - info_label.get_width() // 2, Height // 2 - info_label.get_height() // 2 + 50))
         if info:
             Win.blit(info_text_label, (
-                Width // 2 - info_text_label.get_width() // 2, Height // 2 - info_text_label.get_height() // 2 + 100))
+                Width // 2 - info_text_label.get_width() // 2, Height // 2 - info_text_label.get_height() // 2 + 100 + 12))
             Win.blit(info_text_label2, (
-                Width // 2 - info_text_label2.get_width() // 2, Height // 2 - info_text_label2.get_height() // 2 + 150))
+                Width // 2 - info_text_label2.get_width() // 2, Height // 2 - info_text_label2.get_height() // 2 + 150 + 12))
             Win.blit(info_text_label3, (
-                Width // 2 - info_text_label3.get_width() // 2, Height // 2 - info_text_label3.get_height() // 2 + 200))
+                Width // 2 - info_text_label3.get_width() // 2, Height // 2 - info_text_label3.get_height() // 2 + 200 + 12))
             Win.blit(info_text_label4, (
-                Width // 2 - info_text_label4.get_width() // 2, Height // 2 - info_text_label4.get_height() // 2 + 250))
+                Width // 2 - info_text_label4.get_width() // 2, Height // 2 - info_text_label4.get_height() // 2 + 250 + 12))
         pygame.display.update()
 
     while run:
@@ -848,11 +768,40 @@ def main_menu():
         redraw_window()
         keys = pygame.key.get_pressed()
         mouse = pygame.mouse.get_pos()
+        click = pygame.mouse.get_pressed()
 
         # print(mouse)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+        #
+        dfs_b.can_click(mouse, click)
+        if dfs_b.hover(mouse):
+            dfs_b.color = (140, 140, 140)
+        else:
+            dfs_b.color = (175, 175, 175)
+        #
+        if dfs_b.clickable and click[0]:
+
+            dfs_b.change_text_size(12)
+            dfs_b.change_text("Coming Soon...")
+            dfs_b.color = (255, 0, 0)
+        else:
+            dfs_b.change_text_size(20)
+            dfs_b.change_text("DFS")
+
+        bfs_b.can_click(mouse, click)
+        if bfs_b.hover(mouse):
+            bfs_b.color = (140, 140, 140)
+        else:
+            bfs_b.color = (175, 175, 175)
+
+        if bfs_b.clickable and click[0]:
+            if timer >= delay:
+                bfs_b.color = (110,110,110)
+                return main_gui()
+            timer = 0
+
 
         if keys[pygame.K_SPACE]:
             # TODO Make a loading bar
@@ -860,7 +809,13 @@ def main_menu():
         if keys[pygame.K_ESCAPE]:
             quit()
         if keys[pygame.K_i]:
-            info = True
-
+            if timer >= delay:
+                info = not info
+            timer = 0
+        # if keys[pygame.K_i]:
+        #     if timer >= delay:
+        #         info = False
+        timer += 1
+        print(info)
 
 maze = main_menu()
