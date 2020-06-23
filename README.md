@@ -1,1 +1,1 @@
-# A Path Finder made with pygame using bredth-first search
+# A Path Finder made with pygame using breadth-first search
