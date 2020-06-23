@@ -32,15 +32,17 @@ def find_path(gui_maze, width=7, height=7):
 
     # TODO rename with BFS
 
-    def find_start(maze):
+    def find_start(maze, width=7, height=7):
         # print(maze)
         if maze is not None:
             for w in range(1, height + 1):
-                for u in range(1, width):
+                for u in range(1, width + 1):
                     s = maze[w][u]
                     if s == 'S':
                         return w, u
 
+    # for i in gui_maze:
+    #     print(i)
     col, row = find_start(gui_maze)
 
     # col, row = 5, 1
@@ -243,7 +245,7 @@ def find_path(gui_maze, width=7, height=7):
         print("No solution, none")
 
     end = time.perf_counter()
-    return end - start, viz_maze, has_solution
+    return (end - start).__round__(3), viz_maze, has_solution
 
 
 # --------------------------------------------------------------------gui-----------------------------------------------------------------
@@ -324,15 +326,21 @@ class Rectangle:
 
     def do_toggle(self):
         if self.toggle:
+            self.is_wall = False
+            self.is_start = False
+            self.is_end = False
             self.color = (0, 0, 0)
         elif not self.toggle:
+            self.is_wall = True
+            self.is_start = False
+            self.is_end = False
             self.color = (255, 255, 255)
 
-    def toggle_start(self):
-        if self.is_start:
-            self.color = (0, 255, 0)
-        elif not self.is_start:
-            self.color = (255, 255, 255)
+    def make_wall(self):
+        self.is_end =False
+        self.is_start = False
+        self.is_wall = True
+        self.color = (0, 0, 0)
 
     def change_color(self, color):
         self.color = color
@@ -446,16 +454,21 @@ def main_gui():
     BLUE = (0, 0, 255)
     white = (255, 255, 255)
     grey = (175, 175, 175)
-    FPS = 55
+    FPS = 60
     clock = pygame.time.Clock()
     main_font = pygame.font.SysFont("arial", 50)
     red = (255, 0, 0)
     white = (255, 255, 255)
     white2 = (235, 235, 235)
     color1 = white
-    # 10 apart
+    # Find path
     button1 = Button(Win, grey, 250, 5, 200, 25, "Find Path", text_color=(0, 0, 0))
+
+    # Clear
     button2 = Button(Win, grey, 50 + 5 * 2 + 400, 5, 100, 25, "Clear", text_color=(0, 0, 0))
+    clearb = Button(Win, grey, 50 + 5 * 2 + 400, 35, 100, 25, "Clear Path", text_color=(0, 0, 0))
+
+    # Menu
     button3 = Button(Win, grey, 140, 5, 100, 25, "Menu", text_color=(0, 0, 0))
     border = CellBorder(Win, red, 100, 50, 100, 100)
 
@@ -463,9 +476,11 @@ def main_gui():
     for y in range(7):
         for x in range(7):
             the_grid.append(Rectangle(Win, color1, ((x + 1) * 150 - 2 * (x - 10)) // 2,
-                                      ((y + 1) * 100 - 2 * (y - 10) + 50 * y) // 2, (140 - 2 * 2) // 2,
+                                      (((y + 1) * 100 - 2 * (y - 10) + 50 * y) // 2)+10, (140 - 2 * 2) // 2,
                                       (140 - 2 * 2) // 2))
             # highlight_box25 = Rectangle(Win, color1, 5 * 100 - 2 * 3, 4 * 100 + 50 - 2 * 3, 100 - 2 * 2, 100 - 2 * 2)
+
+    len_grid =  len(the_grid)
 
     lost = False
     timer = 0
@@ -481,7 +496,6 @@ def main_gui():
     current_start = []
     current_end = []
     timer_click = 0
-    off_click = True
 
     def redraw_window():
         # Draw everything here if it happens during the game
@@ -492,6 +506,7 @@ def main_gui():
         button1.draw()
         button2.draw()
         button3.draw()
+        clearb.draw()
         # Draw 5x5 grid; might make it a 5X9 grid idk
         # Rect params: x, y, width, height
         v_x = 100
@@ -522,10 +537,12 @@ def main_gui():
         if lost:
             quit()
 
+        # todo blit text after rect in class method draw
         Win.blit(main_label, (0, Height - main_label.get_height()))
         button1.blit_text()
         button2.blit_text()
         button3.blit_text()
+        clearb.blit_text()
         pygame.display.update()
 
     while run:
@@ -542,7 +559,7 @@ def main_gui():
         # print(click)
         # print(mouse)
 
-        for jello in range(len(the_grid)):
+        for jello in range(len_grid):
             myobj = the_grid[jello]
             if myobj.hover(mouse):
                 cursor_x = jello
@@ -551,7 +568,7 @@ def main_gui():
         # todo make a mouse class?
 
         if timer_click >= delay:
-            for jello in range(len(the_grid)):
+            for jello in range(len_grid):
                 myobj = the_grid[jello]
                 if myobj.color == (255, 0, 0):
                     myobj.is_start = True
@@ -598,7 +615,8 @@ def main_gui():
                         new_maze = make_maze(maze, current_start[0], current_end[0])
                         time_took, got_maze, has_sol = find_path(new_maze)
 
-                        time_took = time_took.__round__(3)
+                        time_took = time_took
+                        redraw_window()
                         bool_maze = make_maze_path_bool(new_maze)
                         for wj in range(len(bool_maze)):
                             mi_obj = the_grid[wj]
@@ -637,7 +655,7 @@ def main_gui():
             if timer >= delay:
                 cell.is_wall = False
                 if len(current_end) == 0:
-                    cell.is_start = True
+                    cell.is_end = True
                     cell.change_color((255, 0, 0))
                     current_end.append(cursor_x)
                 else:
@@ -649,6 +667,19 @@ def main_gui():
                     current_end.append(cursor_x)
 
                 timer = 0
+        # TOOO make a random wall generator
+        if keys[pygame.K_LSHIFT] and keys[pygame.K_w]:
+            import random
+            if timer >= delay:
+                for i in range(len_grid):
+                    if random.random() < .2:
+                        the_grid[i].make_wall()
+                timer = 0
+        if keys[pygame.K_w]:
+            if timer >= delay:
+                for i in range(len_grid):
+                    if the_grid[i].is_wall:
+                        the_grid[i].clear()
 
         if keys[pygame.K_SPACE]:
             # get the state of the current box
@@ -665,6 +696,20 @@ def main_gui():
         if keys[pygame.K_ESCAPE]:
             quit()
 
+        if clearb.hover(mouse):
+            clearb.color = (140, 140, 140)
+        else:
+            clearb.color = (175, 175, 175)
+        clearb.can_click(mouse, click)
+        if clearb.clickable:
+            if True:
+
+                if click[0]:
+                    for i in the_grid:
+
+                        if i.color == (255, 255, 0):
+                            i.change_color((255, 255, 255))
+                    timer_click = 0
         if not button2.hover(mouse) and click[0]:
             button2_can_click = False
         if not button2.hover(mouse) and not click[0]:
@@ -674,31 +719,24 @@ def main_gui():
             button2.change_color((175, 175, 175))
         # 250, 5, 200, 25
         if button2.hover(mouse) and button2_can_click:
-            if timer >= delay:
-                button2.change_color((140, 140, 140))
-                if button2.hover(mouse) and click[0] and button2_can_click:
-                    button2.change_text("Clear")
-                    button2.change_color((110, 110, 110))
-                    current_start.clear()
-                    current_end.clear()
-                    time_took = 0
-                    for jello in range(len(the_grid)):
-                        myobj = the_grid[jello]
-                        myobj.change_color((255, 255, 255))
-                        myobj.is_wall = False
-                        myobj.is_start = False
-                        myobj.is_end = False
+            button2.change_color((140, 140, 140))
+            if button2.hover(mouse) and click[0] and button2_can_click:
+                button2.change_text("Clear")
+                button2.change_color((110, 110, 110))
+                current_start.clear()
+                current_end.clear()
+                time_took = 0
+                for jello in range(len_grid):
+                    myobj = the_grid[jello]
+                    myobj.clear()
         # TODO add clear to highlight class
         if keys[pygame.K_c]:
             current_start.clear()
             current_end.clear()
             time_took = 0
-            for jello in range(1, 26):
+            for jello in range(len_grid):
                 myobj = the_grid[jello]
-                myobj.change_color((255, 255, 255))
-                myobj.is_wall = False
-                myobj.is_start = False
-                myobj.is_end = False
+                myobj.clear()
 
         if button3.hover(mouse):
             button3.color = (140, 140, 140)
@@ -706,7 +744,7 @@ def main_gui():
             button3.color = (175, 175, 175)
         button3.can_click(mouse, click)
         if button3.clickable:
-            if timer >= delay:
+            if timer_click >= delay:
 
                 if click[0]:
                     button3.color = (110, 110, 110)
@@ -754,13 +792,17 @@ def main_menu():
                  (Width // 2 - info_label.get_width() // 2, Height // 2 - info_label.get_height() // 2 + 50))
         if info:
             Win.blit(info_text_label, (
-                Width // 2 - info_text_label.get_width() // 2, Height // 2 - info_text_label.get_height() // 2 + 100 + 12))
+                Width // 2 - info_text_label.get_width() // 2,
+                Height // 2 - info_text_label.get_height() // 2 + 100 + 12))
             Win.blit(info_text_label2, (
-                Width // 2 - info_text_label2.get_width() // 2, Height // 2 - info_text_label2.get_height() // 2 + 150 + 12))
+                Width // 2 - info_text_label2.get_width() // 2,
+                Height // 2 - info_text_label2.get_height() // 2 + 150 + 12))
             Win.blit(info_text_label3, (
-                Width // 2 - info_text_label3.get_width() // 2, Height // 2 - info_text_label3.get_height() // 2 + 200 + 12))
+                Width // 2 - info_text_label3.get_width() // 2,
+                Height // 2 - info_text_label3.get_height() // 2 + 200 + 12))
             Win.blit(info_text_label4, (
-                Width // 2 - info_text_label4.get_width() // 2, Height // 2 - info_text_label4.get_height() // 2 + 250 + 12))
+                Width // 2 - info_text_label4.get_width() // 2,
+                Height // 2 - info_text_label4.get_height() // 2 + 250 + 12))
         pygame.display.update()
 
     while run:
@@ -798,9 +840,11 @@ def main_menu():
 
         if bfs_b.clickable and click[0]:
             if timer >= delay:
-                bfs_b.color = (110,110,110)
+                bfs_b.color = (110, 110, 110)
                 return main_gui()
             timer = 0
+
+
 
         if keys[pygame.K_SPACE]:
             # TODO Make a loading bar
@@ -815,6 +859,7 @@ def main_menu():
         #     if timer >= delay:
         #         info = False
         timer += 1
-        print(info)
+        # print(info)
+
 
 maze = main_menu()
