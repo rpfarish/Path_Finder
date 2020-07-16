@@ -1,6 +1,7 @@
 import pygame
 import os
 import time
+from collections import deque
 
 pygame.font.init()
 icon = pygame.image.load(os.path.join("assets", "pathfinder.png"))
@@ -110,7 +111,8 @@ def find_path(gui_maze, width=7, height=7):
     def check_paths(path, maze, node_col, node_row):
         # Start in node_Col and node_Row
         path += ""
-        visited_nodes = []
+        visited_nodes = deque([])
+        # visited_nodes = []
         path = [char for char in path]
         for j in range(len(path)):
             node = path[j]
@@ -156,7 +158,7 @@ def find_path(gui_maze, width=7, height=7):
                         return True
 
     def all_paths(maze, node_col, node_row):
-        queue = [""]
+        queue = deque([""])
         while True:
             end_time = time.perf_counter()
             if end_time - start > 100:
@@ -168,7 +170,7 @@ def find_path(gui_maze, width=7, height=7):
                 if solution:
                     return solution
             # deque
-            queue.pop(0)
+            queue.popleft()
 
             # ------------------- U move ------------------------
             cur_col, cur_row = get_node_pos(e, node_col, node_row)
@@ -255,8 +257,8 @@ def make_maze(wall_li, start, end, grid_width=7, grid_height=7):
             wall_li[i] = "+"
         elif wall_li[i] is False:
             wall_li[i] = " "
-    wall_li[start] = "S"
     wall_li[end] = "X"
+    wall_li[start] = "S"
 
     for sy in range(grid_width):
         pass
@@ -295,7 +297,7 @@ def gui_visualize_maze(maze5, grid):
 #                 TODO make obj classes  change colors with words and rgb
 
 def make_maze_path_bool(maze, grid_width=7, grid_height=7):
-    the_li = []
+    the_li = deque([])
     # print(maze)
     for i in range(1, grid_height + 1):
         for j in range(1, grid_width + 1):
@@ -337,7 +339,7 @@ class Rectangle:
             self.color = (255, 255, 255)
 
     def make_wall(self):
-        self.is_end =False
+        self.is_end = False
         self.is_start = False
         self.is_wall = True
         self.color = (0, 0, 0)
@@ -472,15 +474,15 @@ def main_gui():
     button3 = Button(Win, grey, 140, 5, 100, 25, "Menu", text_color=(0, 0, 0))
     border = CellBorder(Win, red, 100, 50, 100, 100)
 
-    the_grid = []
+    the_grid = deque([])
     for y in range(7):
         for x in range(7):
             the_grid.append(Rectangle(Win, color1, ((x + 1) * 150 - 2 * (x - 10)) // 2,
-                                      (((y + 1) * 100 - 2 * (y - 10) + 50 * y) // 2)+10, (140 - 2 * 2) // 2,
+                                      (((y + 1) * 100 - 2 * (y - 10) + 50 * y) // 2) + 10, (140 - 2 * 2) // 2,
                                       (140 - 2 * 2) // 2))
             # highlight_box25 = Rectangle(Win, color1, 5 * 100 - 2 * 3, 4 * 100 + 50 - 2 * 3, 100 - 2 * 2, 100 - 2 * 2)
 
-    len_grid =  len(the_grid)
+    len_grid = len(the_grid)
 
     lost = False
     timer = 0
@@ -493,44 +495,20 @@ def main_gui():
     # TODO add depth label
     # todo add error on screen: no solution
     # todo add can click to the button class
-    current_start = []
-    current_end = []
+    current_start = deque([])
+    current_end = deque([])
     timer_click = 0
 
     def redraw_window():
         # Draw everything here if it happens during the game
-        # for balloon in balloons:
-        #     balloon.draw(Win)
+
         Win.fill((0, 0, 0))
-        # Win.fill((21, 104, 207))
+
         button1.draw()
         button2.draw()
         button3.draw()
         clearb.draw()
-        # Draw 5x5 grid; might make it a 5X9 grid idk
-        # Rect params: x, y, width, height
-        v_x = 100
-        v_y = 50
-        v_width = 2
-        v_height = 500
-        v_line_dist = 100 - v_width
-        x_grid_width = 0
-        # TOP LEFT CORNER (100,50)
-        # TOP LEFT CORNER 1 TO THE RIGHT (200,50)
 
-        # should = 100; (100*i+1) - (v_x-v_width)
-        # Draw vertical lines
-        # for i in range(6):
-        #     pygame.draw.rect(Win, grey, (v_x + v_line_dist * i, v_y, v_width, v_height - 8))
-        #     x_grid_width = ((v_x + v_line_dist * i) - v_x)
-
-        # h_height = v_width
-        # h_width = x_grid_width
-        # Draw horizontal lines
-        # for i in range(6):
-        #     pygame.draw.rect(Win, grey, (v_x, v_y + v_line_dist * i, h_width, h_height))
-
-        # Need to put each square location into a class
         for box in the_grid:
             box.draw()
 
@@ -596,8 +574,7 @@ def main_gui():
 
         if not button1.hover(mouse):
             button1.change_color((175, 175, 175))
-        # 250, 5, 200, 25
-        # if
+
         if button1.hover(mouse) and button1_can_click:
             if timer >= delay:
 
@@ -606,7 +583,7 @@ def main_gui():
                     time_took = 0
                     button1.change_text("Find Path")
                     button1.change_color((110, 110, 110))
-                    maze = []
+                    maze = deque([])
                     if len(current_start) == 1 and len(current_end) == 1:
                         for i in the_grid:
                             maze.append(i.is_wall)
@@ -646,7 +623,7 @@ def main_gui():
                     lst_cell = current_start[0]
                     lst_cell_obj = the_grid[lst_cell]
                     lst_cell_obj.change_color((255, 255, 255))
-                    current_start.pop(0)
+                    current_start.popleft()
                     cell.change_color((0, 255, 0))
                     current_start.append(cursor_x)
                 timer = 0
@@ -662,7 +639,7 @@ def main_gui():
                     lst_cell = current_end[0]
                     lst_cell_obj = the_grid[lst_cell]
                     lst_cell_obj.change_color((255, 255, 255))
-                    current_end.pop(0)
+                    current_end.popleft()
                     cell.change_color((255, 0, 0))
                     current_end.append(cursor_x)
 
@@ -743,15 +720,12 @@ def main_gui():
         else:
             button3.color = (175, 175, 175)
         button3.can_click(mouse, click)
+
         if button3.clickable:
-            if timer_click >= delay:
+            if click[0]:
+                button3.color = (110, 110, 110)
 
-                if click[0]:
-                    button3.color = (110, 110, 110)
-
-                    main_menu()
-
-        # print("\n" * 3)
+                main_menu()
 
         timer += 1
         timer_click += 5
@@ -843,8 +817,6 @@ def main_menu():
                 bfs_b.color = (110, 110, 110)
                 return main_gui()
             timer = 0
-
-
 
         if keys[pygame.K_SPACE]:
             # TODO Make a loading bar

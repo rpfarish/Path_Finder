@@ -2,6 +2,7 @@ import pygame
 import random
 import os
 
+
 pygame.font.init()
 icon = pygame.image.load(os.path.join("assets", "pathfinder.png"))
 pygame.display.set_icon(icon)
@@ -12,26 +13,7 @@ Win = pygame.display.set_mode((Width, Height))
 pygame.display.set_caption("Path Finder v1.0")
 
 
-def make_maze(wall_li, start, end):
-    for i in range(len(wall_li)):
-        if wall_li[i] is True:
-            wall_li[i] = "+"
-        elif wall_li[i] is False:
-            wall_li[i] = " "
-    wall_li[start-1] = "S"
-    wall_li[end-1] = "X"
 
-    maze1 = [['|', '-', '-', '-', '-', '-', '|'],
-             ['|', wall_li[0], wall_li[1], wall_li[2], wall_li[3], wall_li[4], '|'],
-             ['|', wall_li[5], wall_li[6], wall_li[7], wall_li[8], wall_li[9], '|'],
-             ['|', wall_li[10], wall_li[11], wall_li[12], wall_li[13], wall_li[14], '|'],
-             ['|', wall_li[15], wall_li[16], wall_li[17], wall_li[18], wall_li[19], '|'],
-             ['|', wall_li[20], wall_li[21], wall_li[22], wall_li[23], wall_li[24], '|'],
-             ['|', '-', '-', '-', '-', '-', '|']]
-
-    # for node in maze1:
-    #     print(node)
-    return maze1
 
 
 class Rectangle:
@@ -154,6 +136,8 @@ class Button:
 
 def main():
     run = True
+
+    text_maze = open("maze.txt", "r+")
 
     BLUE = (0, 0, 255)
     white = (255, 255, 255)
@@ -339,8 +323,8 @@ def main():
                 if len(current_start) == 1 and len(current_end) == 1:
                     for i in the_grid:
                         maze.append(the_grid[i].is_wall)
-                    new_maze = make_maze(maze, current_start[0], current_end[0])
-                    return new_maze
+                    # new_maze = make_maze(maze, current_start[0], current_end[0])
+                    text_maze.write(str(maze))
                 else:
                     button1.change_text("Error")
 
