@@ -46,13 +46,16 @@ def dijkstra(start, wall, grid_size):
                 check_node.append((x, y))
             weight[(x, y)] = 1
     grid[start] = 0
-    print(grid)
+    # print(grid)
     print()
-    print(check_node)
+    # print(check_node)
 
     while check_node:
+        # print(grid, "\n", prev)
         curr, curr_dist = min_of_grid_in_check_node(grid, wall, check_node)  # curr needs to be a key val from grid
-
+        # print(curr)
+        if curr is None:
+            break
         check_node.remove(curr)
         # print(adjacent_nodes(curr, wall, grid_size))
         for adj in adjacent_nodes(curr, wall, grid_size):
@@ -63,8 +66,9 @@ def dijkstra(start, wall, grid_size):
     return grid, prev
 
 
-start, end = (0, 0), (2, 2)
-grid, parent_dict = dijkstra(start, [(1, 0)], (2, 2))
-print(grid)
-print(parent_dict)
+if __name__ == "__main__":
+    start, end = (0, 0), (2, 2)
+    grid, parent_dict = dijkstra(start, [(1, 0)], (2, 2))
+    print(grid)
+    print(parent_dict)
 
